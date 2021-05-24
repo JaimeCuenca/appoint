@@ -1,41 +1,24 @@
-class User{
-  int key;
-  String _name;
-  String _password;
-  String _email;
-  String _photo;
+import 'package:hive/hive.dart';
+import 'package:flutter/foundation.dart';
+
+part 'users.g.dart';
+
+@HiveType(typeId: 0)
+class User extends HiveObject {
+
+  @HiveField(0)
+  String name;
+
+  @HiveField(1)
+  String password;
+
+  @HiveField(2)
+  String email;
+
+  @HiveField(3)
+  String photo;
 
 
-  User(this._name, this._password){
-    this._photo = "https://thispersondoesnotexist.com/";
-  }
-
-  @override
-  String toString() {
-    return _name;
-  }
-
-  String get email => _email;
-
-  String get name => _name;
-
-  String get password => _password;
-
-  String get photo => _photo;
-
-  set name(String value) {
-    _name = value;
-  }
-
-  set email(String value) {
-    _email = value;
-  }
-
-  set password(String value) {
-    _password = value;
-  }
-
-  set photo(String value) {
-    _photo = value;
-  }
+  // Constructor
+  User({@required this.name, this.password, this.email, this.photo});
 }

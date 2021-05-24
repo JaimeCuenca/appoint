@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:appoint/src/connection/users.dart';
-import 'package:hive/hive.dart';
 
 class LoginScreen extends StatefulWidget {
   BuildContext context;
@@ -20,6 +18,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.home_outlined, color: Colors.white,),
+        onPressed: (){_showHome(context);},
+      ),
       body: Form(
         key: _formKey,
         child: Stack(
@@ -36,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children:[
                   SizedBox(height: 70),
                   Text(
-                  "APPointment",
+                  "APPoint",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 50
@@ -98,27 +100,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               Text("Iniciar sesion", style: TextStyle(color: Colors.white)),
                           ],
                         ),
-                        onPressed: () {
-                          _loginOnPressed(context, userName, password);
-                        },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple[300]),
                         ),
                       ),
-                      SizedBox(height: 5,),
-                      if(nonUser)
-                        Text("Usuario o contraseña incorrectos", style: TextStyle(color: Colors.red),),
                       SizedBox(height: 5,),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text("¿No estás registrado?"),
                           TextButton(
-                              onPressed: () {
+                              child:
+                                Text("Registrarse"),
+                              onPressed:() {
                                 _showRergister(context);
                               },
-                              child:
-                              Text("Registrarse")
                           )
                         ],
                       )
@@ -131,39 +127,10 @@ class _LoginScreenState extends State<LoginScreen> {
       )
     );
   }
-
-  void _loginOnPressed(BuildContext context, String userName, String password) async{
-    if(!loading){
-      if(!_findUser(User(userName, password))){
-        setState(() {
-          nonUser = true;
-          loading = false;
-        });
-      }else{
-        setState(() {
-          nonUser = false;
-          loading = false;
-        });
-        Navigator.of(context).pushReplacementNamed("/home");
-      }
-    }
-  }
-
   void _showRergister(BuildContext context) {
     Navigator.of(context).pushNamed('/register');
   }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  bool _findUser(User user) {
-    for (User u in Hive.box('users').values){
-      if(u.name == user.name || u.email == user.email)
-        return true;
-      else
-        return false;
-    }
+  void _showHome(BuildContext context) {
+    Navigator.of(context).pushNamed('/');
   }
 }

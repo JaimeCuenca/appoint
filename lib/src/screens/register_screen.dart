@@ -20,6 +20,23 @@ class _ReegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        floatingActionButton: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              backgroundColor: Colors.deepPurple,
+              child: Icon(Icons.home_outlined, color: Colors.white,),
+              onPressed: (){_showHome(context);},
+            ),
+            SizedBox(height: 5,),
+            FloatingActionButton(
+              backgroundColor: Colors.deepPurple,
+              child: Icon(Icons.arrow_back_rounded, color: Colors.white,),
+              onPressed: (){_showLog(context);},
+            ),
+          ],
+        ),
+
         body: Form(
           key: _formKey,
           child: Stack(
@@ -118,15 +135,22 @@ class _ReegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  void _showHome(BuildContext context) {
+    Navigator.of(context).pushNamed('/');
+  }
+  void _showLog(BuildContext context) {
+    Navigator.of(context).pushNamed('/loggin');
+  }
+
   void _registerOnPressed(BuildContext context, String userName, String password) async{
     if(!loading){
-      if(_findUser(User(userName, password))){
+      if(true){
         setState(() {
           existUser = true;
           loading = false;
         });
       }else{
-        Hive.box('users').add(User(userName, password));
+        Hive.box('users').add(User());
         setState(() {
           existUser = false;
           loading = false;
