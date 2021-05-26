@@ -1,24 +1,27 @@
+import 'package:appoint/src/controller/user_controller.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
   BuildContext context;
+  UserController userCont;
 
-  LoginScreen(this.context, {Key key}) : super(key: key);
+  LoginScreen(this.context, this.userCont, {Key key}) : super(key: key);
 
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool loading = false;
+  bool loading = false, isUser = true;
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String userName;
   String password;
-  bool nonUser = false;
 
   @override
   Widget build(BuildContext context) {
+    widget.userCont = ModalRoute.of(context).settings.arguments;
     return Scaffold(
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
         child: Icon(Icons.home_outlined, color: Colors.white,),
         onPressed: (){_showHome(context);},
       ),
@@ -88,6 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       SizedBox(height: 20,),
                       ElevatedButton(
+                        onPressed: (){_registerOnPressed(context, userName, password);},
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -104,7 +108,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple[300]),
                         ),
                       ),
-                      SizedBox(height: 5,),
+                      Row(children:
+                          [if(!isUser)
+                            Text("Usuario no encontrado", style: TextStyle(color: Colors.red),),
+                          ],
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -127,10 +135,50 @@ class _LoginScreenState extends State<LoginScreen> {
       )
     );
   }
+
+
   void _showRergister(BuildContext context) {
-    Navigator.of(context).pushNamed('/register');
+    Navigator.of(context).pushNamed('/register', arguments: widget.userCont);
   }
   void _showHome(BuildContext context) {
-    Navigator.of(context).pushNamed('/');
+    Navigator.of(context).pushNamed('/', arguments: widget.userCont);
+  }
+  void _registerOnPressed(BuildContext context, String userName, String password) async {
+    if (!loading) {
+      setState(() {
+        loading = true;
+        isUser = true;
+      });
+      if (_formKey.currentState.validate()) {
+        print(
+            "SI QUE VALIDA EL FORM ***********************************************************************************************");
+        int index = widget.userCont.findUser(userName);
+        if (index != -1) {
+          print(
+              "SI QUE ENCUENTRA EL USER ***********************************************************************************************");
+          setState(() {
+            loading = false;
+            isUser = true;
+          });
+          widget.userCont.userLogged = widget.userCont.getUser(index);
+          widget.userCont.logged = true;
+          Navigator.of(context).pushNamed("/", arguments: widget.userCont);
+        } else {
+          print(
+              "NO ENCUENTRA EL USER ***********************************************************************************************");
+          setState(() {
+            loading = false;
+            isUser = false;
+          });
+        }
+      } else {
+        print(
+            "NO QUE VALIDA EL FORM ***********************************************************************************************");
+        setState(() {
+          loading = false;
+          isUser = true;
+        });
+      }
+    }
   }
 }

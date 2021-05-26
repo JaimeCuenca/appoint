@@ -1,11 +1,9 @@
 import 'package:appoint/src/app.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 Future<void> main() async {
+  SystemChrome.setEnabledSystemUIOverlays([SystemUiOverlay.bottom]);
   WidgetsFlutterBinding.ensureInitialized();
-  var path = await getApplicationDocumentsDirectory();
-  Hive.init(path.toString());
   runApp(MyApp());
 }

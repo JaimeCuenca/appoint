@@ -1,11 +1,14 @@
+import 'dart:io';
+
 import 'package:appoint/src/connection/users.dart';
+import 'package:appoint/src/controller/user_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 
 class RegisterScreen extends StatefulWidget {
   BuildContext context;
+  UserController userCont;
 
-  RegisterScreen(this.context, {Key key}) : super(key: key);
+  RegisterScreen(this.context, this.userCont, {Key key}) : super(key: key);
 
   _ReegisterScreenState createState() => _ReegisterScreenState();
 }
@@ -13,8 +16,7 @@ class RegisterScreen extends StatefulWidget {
 class _ReegisterScreenState extends State<RegisterScreen> {
   bool loading = false;
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String userName;
-  String password;
+  String userName, email, password;
   bool existUser = false;
 
   @override
@@ -90,14 +92,28 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                           ),
                           SizedBox(height: 20,),
                           TextFormField(
-                            decoration: InputDecoration(labelText: "Contraseña:"),
+                            decoration: InputDecoration(labelText: "Email:"),
                             onSaved: (value){
-                              password = value;
+                              email = value;
                             },
                             validator: (value){
                               if(value.isEmpty){
                                 return "Campo obligatorio";
+                              }else{
+                                if(!value.contains('@') || !value.contains('.'))
+                                  return "Email invalido";
                               }
+                            },
+                          ),
+                          SizedBox(height: 20,),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: "Contraseña:"),
+                            onSaved: (cont){
+                              password = cont;
+                            },
+                            validator: (cont) {
+                              if (cont.isEmpty)
+                                return "Campo obligatorio";
                             },
                             obscureText: true,
                           ),
@@ -116,7 +132,7 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                               ],
                             ),
                             onPressed: () {
-                              _registerOnPressed(context, userName, password);
+                              _registerOnPressed(context, userName, email, password);
                             },
                             style: ButtonStyle(
                               backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple[300]),
@@ -136,41 +152,47 @@ class _ReegisterScreenState extends State<RegisterScreen> {
   }
 
   void _showHome(BuildContext context) {
-    Navigator.of(context).pushNamed('/');
+    Navigator.of(context).pushNamed('/', arguments: widget.userCont);
   }
   void _showLog(BuildContext context) {
-    Navigator.of(context).pushNamed('/loggin');
+    Navigator.of(context).pushNamed('/loggin', arguments: widget.userCont);
   }
 
-  void _registerOnPressed(BuildContext context, String userName, String password) async{
-    if(!loading){
-      if(true){
-        setState(() {
-          existUser = true;
-          loading = false;
-        });
+  void _registerOnPressed(BuildContext context, String userName, String email, String password) async{
+    if(!loading) {
+      setState(() {
+        loading = true;
+        existUser = false;
+      });
+      sleep(Duration(seconds: 3));
+      if(_formKey.currentState.validate()){
+        print("SI QUE VALIDA EL FORM ***********************************************************************************************");
+        int index = widget.userCont.findUser(userName);
+        if (index == -1) {
+          print("NO ENCUNETRA EL USER ***********************************************************************************************");
+          widget.userCont.addUser(User(userName, password, email, widget.userCont.users.length));
+          print("añade EL USER ***********************************************************************************************");
+          widget.userCont.userLogged = widget.userCont.getUser(widget.userCont.findUser(userName)+1);
+          widget.userCont.logged = true;
+          Navigator.of(context).pushNamed("/", arguments: widget.userCont);
+          setState(() {
+            loading = false;
+            existUser = false;
+          });
+        } else {
+          print("ENCUENTRA EL USER ***********************************************************************************************");
+          setState(() {
+            loading = false;
+            existUser = true;
+          });
+        }
       }else{
-        Hive.box('users').add(User());
+        print("NO QUE VALIDA EL FORM ***********************************************************************************************");
         setState(() {
-          existUser = false;
           loading = false;
+          existUser = false;
         });
-        Navigator.of(context).pushReplacementNamed("/home");
       }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-}
-
-bool _findUser(User user) {
-  for (User u in Hive.box('users').values){
-    if(u.name == user.name || u.email == user.email)
-      return true;
-    else
-      return false;
   }
 }

@@ -1,14 +1,13 @@
+import 'package:appoint/src/screens/gallery_screen.dart';
 import 'package:appoint/src/screens/home_screen.dart';
 import 'package:appoint/src/screens/login_screen.dart';
 import 'package:appoint/src/screens/register_screen.dart';
-import 'package:appoint/src/connection/user_data.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
+import 'controller/user_controller.dart';
 
 class MyApp extends StatefulWidget {
   // This widget is the root of your application.
+  UserController userCont = new UserController();
   @override
   _MyAppState createState() => _MyAppState();
 }
@@ -16,9 +15,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => UsersData(),
-      child: MaterialApp(
+    return MaterialApp(
         title: 'Appoint',
         theme: ThemeData(
           brightness: Brightness.light,
@@ -27,42 +24,11 @@ class _MyAppState extends State<MyApp> {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => FutureBuilder(
-            future: _initHive(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if (snapshot.error != null) {
-                  print(snapshot.error);
-                  return Scaffold(
-                    body: Center(
-                      child: Text('Error initializing hive data store.'),
-                    ),
-                  );
-                } else {
-                  return HomeScreen(context);
-                }
-              } else {
-                return Scaffold(
-                  body: Center(
-                    child:
-                    SizedBox(
-                      child:
-                      Text('Hola'),
-                    ),
-                  ),
-                );;
-              }
-            },
-          ),
-          '/register': (context) => RegisterScreen(context),
-          '/loggin': (context) => LoginScreen(context)
+          '/': (context) => HomeScreen(context, widget.userCont),
+          '/register': (context) => RegisterScreen(context, widget.userCont),
+          '/loggin': (context) => LoginScreen(context, widget.userCont),
+          '/gallery': (context) => GalleryScreen(context)
         },
-      )
     );
-  }
-
-  Future _initHive() async {
-    var dir = await getApplicationDocumentsDirectory();
-    Hive.init(dir.path);
   }
 }
