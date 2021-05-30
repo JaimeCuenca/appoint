@@ -13,7 +13,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool loading = false, isUser = true;
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String userName;
+  String userName, email;
   String password;
 
   @override
@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
     widget.userCont = ModalRoute.of(context).settings.arguments;
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.black,
         child: Icon(Icons.home_outlined, color: Colors.white,),
         onPressed: (){_showHome(context);},
       ),
@@ -34,24 +34,17 @@ class _LoginScreenState extends State<LoginScreen> {
             padding: EdgeInsets.symmetric(vertical: 30),
             decoration: BoxDecoration(
                 gradient: LinearGradient(
-                    colors: [Colors.deepPurple[300], Colors.pink[200]]
+                    colors: [Colors.red[100], Colors.red[200]]
                 )
             ),
             child: Column(
                 children:[
-                  SizedBox(height: 70),
-                  Text(
-                  "APPoint",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 50
-                  ),
-                )
+                  Image.asset("assets/images/logo.png")
               ]
             ),
           ),
           Transform.translate(
-            offset: Offset(0, -15),
+            offset: Offset(0, 40),
             child: SingleChildScrollView(
               child: Card(
                 elevation: 5,
@@ -67,8 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       TextFormField(
                         decoration: InputDecoration(labelText: "Usuario:"),
-                        onSaved: (value){
-                          userName = value;
+                        onChanged: (value){
+                          setState(() {
+                            userName = value;
+                          });
                         },
                         validator: (value){
                           if(value.isEmpty){
@@ -78,9 +73,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       SizedBox(height: 20,),
                       TextFormField(
+                        decoration: InputDecoration(labelText: "Email:"),
+                        onChanged: (value){
+                          setState(() {
+                            email = value;
+                          });
+                        },
+                        validator: (value){
+                          if(value.isEmpty){
+                            return "Campo obligatorio";
+                          }else{
+                            if(!value.contains('@') || !value.contains('.'))
+                              return "Email invalido";
+                          }
+                        },
+                      ),
+                      SizedBox(height: 20,),
+                      TextFormField(
                         decoration: InputDecoration(labelText: "Contraseña:"),
-                        onSaved: (value){
-                          password = value;
+                        onChanged: (value){
+                          setState(() {
+                            password = value;
+                          });
                         },
                         validator: (value){
                           if(value.isEmpty){
@@ -91,21 +105,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       SizedBox(height: 20,),
                       ElevatedButton(
-                        onPressed: (){_registerOnPressed(context, userName, password);},
+                        onPressed: (){
+                          _registerOnPressed(context, userName, email, password);
+                          },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             if(loading)
                               SizedBox(
                                 height: 15,
-                                child: CircularProgressIndicator(strokeWidth: 6, backgroundColor: Colors.deepPurple,)
+                                child: CircularProgressIndicator(strokeWidth: 6, backgroundColor: Colors.red,)
                               )
                             else
                               Text("Iniciar sesion", style: TextStyle(color: Colors.white)),
                           ],
                         ),
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple[300]),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
                         ),
                       ),
                       Row(children:
@@ -141,39 +157,33 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.of(context).pushNamed('/register', arguments: widget.userCont);
   }
   void _showHome(BuildContext context) {
-    Navigator.of(context).pushNamed('/', arguments: widget.userCont);
+    Navigator.of(context).pushNamed('/home', arguments: widget.userCont);
   }
-  void _registerOnPressed(BuildContext context, String userName, String password) async {
+  void _registerOnPressed(BuildContext context, String userName, String email, String password) async {
+    print(userName);
     if (!loading) {
       setState(() {
         loading = true;
         isUser = true;
       });
       if (_formKey.currentState.validate()) {
-        print(
-            "SI QUE VALIDA EL FORM ***********************************************************************************************");
-        int index = widget.userCont.findUser(userName);
+        int index = widget.userCont.findUser(userName, email, password);
         if (index != -1) {
-          print(
-              "SI QUE ENCUENTRA EL USER ***********************************************************************************************");
           setState(() {
             loading = false;
             isUser = true;
           });
           widget.userCont.userLogged = widget.userCont.getUser(index);
+          print("%%%%%%%%%%%"+widget.userCont.userLogged.name);
           widget.userCont.logged = true;
-          Navigator.of(context).pushNamed("/", arguments: widget.userCont);
+          Navigator.of(context).pushNamed("/home", arguments: widget.userCont);
         } else {
-          print(
-              "NO ENCUENTRA EL USER ***********************************************************************************************");
-          setState(() {
-            loading = false;
-            isUser = false;
-          });
+            setState(() {
+              loading = false;
+              isUser = false;
+            });
         }
       } else {
-        print(
-            "NO QUE VALIDA EL FORM ***********************************************************************************************");
         setState(() {
           loading = false;
           isUser = true;

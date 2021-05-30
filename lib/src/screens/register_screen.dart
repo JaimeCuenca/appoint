@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:appoint/src/connection/users.dart';
 import 'package:appoint/src/controller/user_controller.dart';
 import 'package:flutter/material.dart';
@@ -16,23 +14,24 @@ class RegisterScreen extends StatefulWidget {
 class _ReegisterScreenState extends State<RegisterScreen> {
   bool loading = false;
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  String userName, email, password;
+  String userName, email, password, secPass;
   bool existUser = false;
 
   @override
   Widget build(BuildContext context) {
+    widget.userCont = ModalRoute.of(context).settings.arguments;
     return Scaffold(
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             FloatingActionButton(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: Colors.black,
               child: Icon(Icons.home_outlined, color: Colors.white,),
               onPressed: (){_showHome(context);},
             ),
             SizedBox(height: 5,),
             FloatingActionButton(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: Colors.black,
               child: Icon(Icons.arrow_back_rounded, color: Colors.white,),
               onPressed: (){_showLog(context);},
             ),
@@ -48,24 +47,17 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                 padding: EdgeInsets.symmetric(vertical: 30),
                 decoration: BoxDecoration(
                     gradient: LinearGradient(
-                        colors: [Colors.deepPurple[300], Colors.pink[200]]
+                        colors: [Colors.red[100], Colors.red[200]]
                     )
                 ),
                 child: Column(
                     children:[
-                      SizedBox(height: 70),
-                      Text(
-                        "Nuevo Usuario",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 30
-                        ),
-                      )
+                      Image.asset("assets/images/logo.png")
                     ]
                 ),
               ),
               Transform.translate(
-                offset: Offset(0, -15),
+                offset: Offset(0, 0),
                 child: SingleChildScrollView(
                   child: Card(
                     elevation: 5,
@@ -81,8 +73,10 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                         children: [
                           TextFormField(
                             decoration: InputDecoration(labelText: "Usuario:"),
-                            onSaved: (value){
-                              userName = value;
+                            onChanged: (value){
+                              setState(() {
+                                userName = value;
+                              });
                             },
                             validator: (value){
                               if(value.isEmpty){
@@ -93,8 +87,10 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                           SizedBox(height: 20,),
                           TextFormField(
                             decoration: InputDecoration(labelText: "Email:"),
-                            onSaved: (value){
-                              email = value;
+                            onChanged: (value){
+                              setState(() {
+                                email = value;
+                              });
                             },
                             validator: (value){
                               if(value.isEmpty){
@@ -108,8 +104,10 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                           SizedBox(height: 20,),
                           TextFormField(
                             decoration: InputDecoration(labelText: "Contraseña:"),
-                            onSaved: (cont){
-                              password = cont;
+                            onChanged: (value){
+                              setState(() {
+                                password = value;
+                              });
                             },
                             validator: (cont) {
                               if (cont.isEmpty)
@@ -118,6 +116,15 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                             obscureText: true,
                           ),
                           SizedBox(height: 20,),
+                          TextFormField(
+                            decoration: InputDecoration(labelText: "Repita contraseña:"),
+                            validator: (cont) {
+                              if (cont != password)
+                                return "Las contraseñas no coinciden";
+                            },
+                            obscureText: true,
+                          ),
+
                           ElevatedButton(
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -125,7 +132,7 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                                 if(loading)
                                   SizedBox(
                                       height: 15,
-                                      child: CircularProgressIndicator(strokeWidth: 6, backgroundColor: Colors.deepPurple,)
+                                      child: CircularProgressIndicator(strokeWidth: 6, backgroundColor: Colors.red,)
                                   )
                                 else
                                   Text("Registrarse", style: TextStyle(color: Colors.white)),
@@ -135,7 +142,7 @@ class _ReegisterScreenState extends State<RegisterScreen> {
                               _registerOnPressed(context, userName, email, password);
                             },
                             style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(Colors.deepPurple[300]),
+                              backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
                             ),
                           ),
                           SizedBox(height: 5,),
@@ -152,7 +159,7 @@ class _ReegisterScreenState extends State<RegisterScreen> {
   }
 
   void _showHome(BuildContext context) {
-    Navigator.of(context).pushNamed('/', arguments: widget.userCont);
+    Navigator.of(context).pushNamed('/home', arguments: widget.userCont);
   }
   void _showLog(BuildContext context) {
     Navigator.of(context).pushNamed('/loggin', arguments: widget.userCont);
@@ -164,30 +171,25 @@ class _ReegisterScreenState extends State<RegisterScreen> {
         loading = true;
         existUser = false;
       });
-      sleep(Duration(seconds: 3));
       if(_formKey.currentState.validate()){
-        print("SI QUE VALIDA EL FORM ***********************************************************************************************");
-        int index = widget.userCont.findUser(userName);
+        int index = widget.userCont.findUser(userName, email, password);
         if (index == -1) {
-          print("NO ENCUNETRA EL USER ***********************************************************************************************");
-          widget.userCont.addUser(User(userName, password, email, widget.userCont.users.length));
-          print("añade EL USER ***********************************************************************************************");
-          widget.userCont.userLogged = widget.userCont.getUser(widget.userCont.findUser(userName)+1);
-          widget.userCont.logged = true;
-          Navigator.of(context).pushNamed("/", arguments: widget.userCont);
           setState(() {
             loading = false;
             existUser = false;
           });
+          widget.userCont.addUser(User(userName, password, email, widget.userCont.users.length));
+          widget.userCont.userLogged = widget.userCont.getUser(widget.userCont.findUser(userName, email, password));
+          print("%%%%%%%%%%%"+widget.userCont.userLogged.name);
+          widget.userCont.logged = true;
+          Navigator.of(context).pushNamed("/home", arguments: widget.userCont);
         } else {
-          print("ENCUENTRA EL USER ***********************************************************************************************");
           setState(() {
             loading = false;
             existUser = true;
           });
         }
       }else{
-        print("NO QUE VALIDA EL FORM ***********************************************************************************************");
         setState(() {
           loading = false;
           existUser = false;
